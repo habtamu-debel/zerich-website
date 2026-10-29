@@ -64,15 +64,15 @@ export default function Contact() {
                 <input name="name" value={form.name} onChange={onChange} required />
               </label>
               <label>
-                Email *
-                <input type="email" name="email" value={form.email} onChange={onChange} required />
+                Email 
+                <input type="email" name="email" value={form.email} onChange={onChange} />
               </label>
             </div>
 
             <div className="form-row">
               <label>
-                Phone
-                <input name="phone" value={form.phone} onChange={onChange} />
+                Phone *
+                <input name="phone" value={form.phone} onChange={onChange} required />
               </label>
               <label>
                 Service

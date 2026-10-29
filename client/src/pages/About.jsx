@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Target, Eye, Lightbulb, ShieldCheck, Users } from 'lucide-react';
 import PageHeader from '../components/PageHeader.jsx';
-import CTA from '../components/Home/CTA.jsx';
+import CTA from '../components/home/CTA.jsx';
 import api from '../lib/api.js';
 
 // Draft copy: rewrite with ZeRich's real story, mission and vision
