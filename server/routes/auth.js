@@ -25,16 +25,16 @@ router.post('/login', loginLimiter, async (req, res) => {
     return res.status(401).json({ message: 'Invalid email or password' });
   }
 
-  const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
+  const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
-  res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+  res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
 
 router.get('/me', auth, async (req, res) => {
-  const [rows] = await pool.query('SELECT id, name, email FROM users WHERE id = ?', [req.user.id]);
+  const [rows] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [req.user.id]);
   if (!rows[0]) return res.status(404).json({ message: 'User not found' });
-  res.json(rows[0]);
+  res.json({ user: rows[0] });
 });
 
 export default router;

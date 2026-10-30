@@ -8,6 +8,7 @@ import './styles/theme.css';
 import './styles/layout.css';
 import './styles/home.css';
 import './styles/pages.css';
+import './styles/admin.css';
 
 const queryClient = new QueryClient();
 

@@ -1,51 +1,113 @@
-// client/src/components/admin/LeadDrawer.jsx
 import { useState } from 'react';
 
-export default function LeadDrawer({ lead, onClose, onSave }) {
-  const [status, setStatus] = useState(lead.status);
+const STATUSES = ['new', 'contacted', 'qualified', 'won', 'lost'];
+
+export default function LeadDrawer({ lead, onClose, onSave, saving }) {
+  const [status, setStatus] = useState(lead.status || 'new');
   const [notes, setNotes] = useState(lead.admin_notes || '');
 
+  let systems = [];
+  try { systems = JSON.parse(lead.required_systems || '[]'); } catch {}
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-end z-50">
-      <div className="w-96 bg-slate-900 border-l border-white/10 p-6 h-full overflow-y-auto">
-        <button onClick={onClose} className="text-slate-400 mb-4">&larr; Close</button>
-        <h2 className="text-xl font-semibold">{lead.client_name}</h2>
-        <p className="text-slate-400 mb-4">{lead.company}</p>
+    <div className="admin-drawer-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="admin-drawer">
+        <div className="admin-drawer-header">
+          <div>
+            <div className="admin-drawer-title">{lead.client_name}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--a-muted)', marginTop: 2 }}>{lead.email}</div>
+          </div>
+          <button className="admin-drawer-close" onClick={onClose}>
+            <CloseIcon style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
 
-        <dl className="space-y-2 text-sm mb-6">
-          <div><dt className="text-slate-500">Email</dt><dd>{lead.email}</dd></div>
-          <div><dt className="text-slate-500">Phone</dt><dd>{lead.phone}</dd></div>
-          <div><dt className="text-slate-500">Industry</dt><dd>{lead.industry}</dd></div>
-          <div><dt className="text-slate-500">Budget</dt><dd>{lead.budget_range}</dd></div>
-          <div><dt className="text-slate-500">Systems</dt><dd>{JSON.parse(lead.required_systems || '[]').join(', ')}</dd></div>
-        </dl>
+        {/* Lead Info Grid */}
+        <div className="admin-info-grid" style={{ marginBottom: 20 }}>
+          <InfoItem label="Company"   value={lead.company     || '—'} />
+          <InfoItem label="Industry"  value={lead.industry    || '—'} />
+          <InfoItem label="Phone"     value={lead.phone       || '—'} />
+          <InfoItem label="Budget"    value={lead.budget_range|| '—'} />
+          <InfoItem label="Source"    value={lead.source      || '—'} />
+          <InfoItem label="Date"      value={lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '—'} />
+        </div>
 
-        <label className="block text-sm text-slate-400 mb-1">Status</label>
-        <select
-          value={status}
-          onChange={e => setStatus(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4"
-        >
-          {['new', 'contacted', 'qualified', 'won', 'lost'].map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+        {systems.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <label className="admin-label">Required Systems</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {systems.map(s => (
+                <span key={s} className="stage-pill">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
 
-        <label className="block text-sm text-slate-400 mb-1">Notes</label>
-        <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          rows={4}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4"
-        />
+        {lead.message && (
+          <div style={{ marginBottom: 20 }}>
+            <label className="admin-label">Message</label>
+            <div style={{
+              background: 'var(--a-surface2)', border: '1px solid var(--a-border)',
+              borderRadius: 8, padding: '10px 12px', fontSize: '0.85rem',
+              color: 'var(--a-muted2)', lineHeight: 1.6,
+            }}>
+              {lead.message}
+            </div>
+          </div>
+        )}
+
+        <hr className="admin-divider" />
+
+        <div className="admin-form-group">
+          <label className="admin-label">Status</label>
+          <select
+            className="admin-select"
+            value={status}
+            onChange={e => setStatus(e.target.value)}
+          >
+            {STATUSES.map(s => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-label">Admin Notes</label>
+          <textarea
+            className="admin-textarea"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            rows={4}
+            placeholder="Add notes about this lead…"
+          />
+        </div>
 
         <button
+          className="admin-btn admin-btn-primary"
+          style={{ width: '100%', justifyContent: 'center', marginTop: 'auto' }}
           onClick={() => onSave(status, notes)}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 rounded-lg py-2 font-medium"
+          disabled={saving}
         >
-          Save
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
     </div>
+  );
+}
+
+function InfoItem({ label, value }) {
+  return (
+    <div className="admin-info-item">
+      <label>{label}</label>
+      <span>{value}</span>
+    </div>
+  );
+}
+
+function CloseIcon(props) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
   );
 }

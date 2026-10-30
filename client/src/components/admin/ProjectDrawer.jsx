@@ -1,43 +1,83 @@
-// client/src/components/admin/ProjectDrawer.jsx
 import { useState } from 'react';
 
-export default function ProjectDrawer({ project, stages, onClose, onSave }) {
-  const [stage, setStage] = useState(project.stage);
+export default function ProjectDrawer({ project, stages, onClose, onSave, saving }) {
+  const [stage, setStage]           = useState(project.stage || stages[0]);
   const [stagingUrl, setStagingUrl] = useState(project.staging_url || '');
-  const [engineer, setEngineer] = useState(project.lead_engineer || '');
+  const [engineer, setEngineer]     = useState(project.lead_engineer || '');
   const [deployDate, setDeployDate] = useState(project.deployment_date?.slice(0, 10) || '');
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-end z-50">
-      <div className="w-96 bg-slate-900 border-l border-white/10 p-6 h-full overflow-y-auto">
-        <button onClick={onClose} className="text-slate-400 mb-4">&larr; Close</button>
-        <h2 className="text-xl font-semibold mb-4">{project.client_name}</h2>
+    <div className="admin-drawer-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="admin-drawer">
+        <div className="admin-drawer-header">
+          <div>
+            <div className="admin-drawer-title">{project.client_name}</div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--a-muted)', marginTop: 2 }}>
+              Update project details
+            </div>
+          </div>
+          <button className="admin-drawer-close" onClick={onClose}>
+            <CloseIcon style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
 
-        <label className="block text-sm text-slate-400 mb-1">Stage</label>
-        <select value={stage} onChange={e => setStage(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4">
-          {stages.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
+        <div className="admin-form-group">
+          <label className="admin-label">Current Stage</label>
+          <select className="admin-select" value={stage} onChange={e => setStage(e.target.value)}>
+            {stages.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
 
-        <label className="block text-sm text-slate-400 mb-1">Staging URL</label>
-        <input value={stagingUrl} onChange={e => setStagingUrl(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4" />
+        <div className="admin-form-group">
+          <label className="admin-label">Lead Engineer</label>
+          <input
+            className="admin-input"
+            value={engineer}
+            onChange={e => setEngineer(e.target.value)}
+            placeholder="Engineer name"
+          />
+        </div>
 
-        <label className="block text-sm text-slate-400 mb-1">Lead Engineer</label>
-        <input value={engineer} onChange={e => setEngineer(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4" />
+        <div className="admin-form-group">
+          <label className="admin-label">Staging URL</label>
+          <input
+            className="admin-input"
+            value={stagingUrl}
+            onChange={e => setStagingUrl(e.target.value)}
+            placeholder="https://staging.example.com"
+            type="url"
+          />
+        </div>
 
-        <label className="block text-sm text-slate-400 mb-1">Deployment Date</label>
-        <input type="date" value={deployDate} onChange={e => setDeployDate(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4" />
+        <div className="admin-form-group">
+          <label className="admin-label">Deployment Date</label>
+          <input
+            className="admin-input"
+            type="date"
+            value={deployDate}
+            onChange={e => setDeployDate(e.target.value)}
+          />
+        </div>
+
+        <hr className="admin-divider" />
 
         <button
+          className="admin-btn admin-btn-primary"
+          style={{ width: '100%', justifyContent: 'center', marginTop: 8 }}
           onClick={() => onSave({ stage, staging_url: stagingUrl, lead_engineer: engineer, deployment_date: deployDate })}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 rounded-lg py-2 font-medium"
+          disabled={saving}
         >
-          Save
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
     </div>
+  );
+}
+
+function CloseIcon(props) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
   );
 }

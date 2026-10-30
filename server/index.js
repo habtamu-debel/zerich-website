@@ -16,6 +16,7 @@ import settingRoutes from './routes/settings.js';
 import leadsRouter from './routes/admin/leads.routes.js';
 import projectsRouter from './routes/admin/projects.routes.js';
 import trainingRouter from './routes/admin/training.routes.js';
+import statsRouter from './routes/admin/stats.routes.js';
 
 dotenv.config();
 
@@ -45,6 +46,7 @@ app.use('/api/settings', settingRoutes);
 app.use('/api/admin/leads', leadsRouter);
 app.use('/api/admin/projects', projectsRouter);
 app.use('/api/admin/training', trainingRouter);
+app.use('/api/admin/stats', statsRouter);
 
 app.use('/api', (req, res) => res.status(404).json({ message: 'Route not found' }));
 

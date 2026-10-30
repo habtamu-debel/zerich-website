@@ -1,31 +1,78 @@
-// client/src/components/admin/CourseForm.jsx
 import { useState } from 'react';
 
-export default function CourseForm({ onClose, onSave }) {
-  const [title, setTitle] = useState('');
+export default function CourseForm({ onClose, onSave, saving }) {
+  const [title,       setTitle]       = useState('');
   const [description, setDescription] = useState('');
-  const [links, setLinks] = useState('');
+  const [links,       setLinks]       = useState('');
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-xl p-6">
-        <h2 className="text-xl font-semibold mb-4">New Training Module</h2>
-        <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-3" />
-        <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)}
-          rows={3} className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-3" />
-        <textarea placeholder="Lesson links (one per line)" value={links} onChange={e => setLinks(e.target.value)}
-          rows={3} className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 mb-4" />
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 border border-white/10 rounded-lg py-2">Cancel</button>
+    <div className="admin-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="admin-modal">
+        <div className="admin-modal-header">
+          <div className="admin-modal-title">New Training Module</div>
+          <button className="admin-drawer-close" onClick={onClose}>
+            <CloseIcon style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-label">Title</label>
+          <input
+            className="admin-input"
+            placeholder="e.g. Introduction to ERP Systems"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-label">Description</label>
+          <textarea
+            className="admin-textarea"
+            placeholder="Brief overview of what students will learn…"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={3}
+          />
+        </div>
+
+        <div className="admin-form-group">
+          <label className="admin-label">Lesson Links <span style={{ color: 'var(--a-muted)', textTransform: 'none', letterSpacing: 0 }}>(one per line)</span></label>
+          <textarea
+            className="admin-textarea"
+            placeholder={`https://youtu.be/lesson1\nhttps://youtu.be/lesson2`}
+            value={links}
+            onChange={e => setLinks(e.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+          <button className="admin-btn admin-btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>
+            Cancel
+          </button>
           <button
-            onClick={() => onSave({ title, description, lesson_links: links.split('\n').filter(Boolean) })}
-            className="flex-1 bg-cyan-600 hover:bg-cyan-500 rounded-lg py-2"
+            className="admin-btn admin-btn-primary"
+            style={{ flex: 1, justifyContent: 'center' }}
+            disabled={!title.trim() || saving}
+            onClick={() => onSave({
+              title: title.trim(),
+              description: description.trim(),
+              lesson_links: links.split('\n').map(l => l.trim()).filter(Boolean),
+            })}
           >
-            Create
+            {saving ? 'Creating…' : 'Create Module'}
           </button>
         </div>
       </div>
     </div>
+  );
+}
+
+function CloseIcon(props) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
   );
 }
