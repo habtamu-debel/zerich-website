@@ -22,6 +22,7 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: process.env.CLIENT_URL }));
@@ -49,7 +50,14 @@ app.use('/api/admin/training', trainingRouter);
 app.use('/api/admin/stats', statsRouter);
 
 app.use('/api', (req, res) => res.status(404).json({ message: 'Route not found' }));
-
+const clientDist = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDist));
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+    return next();
+  }
+  res.sendFile(path.join(clientDist, 'index.html'));
+});
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ message: err.message || 'Server error' });

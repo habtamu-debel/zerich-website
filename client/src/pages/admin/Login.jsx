@@ -16,8 +16,8 @@ export default function AdminLogin() {
       const res = await api.post('/auth/login', { email, password });
       setToken(res.data.token);
       window.location.href = '/admin';
-    } catch {
-      setError('Invalid email or password.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Cannot reach the server. Is it running?');
     } finally {
       setLoading(false);
     }

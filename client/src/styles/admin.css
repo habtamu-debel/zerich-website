@@ -26,7 +26,7 @@
 }
 
 /* ---------- Reset & Base ---------- */
-.admin-root * { box-sizing: border-box; margin: 0; padding: 0; }
+/* .admin-root * { box-sizing: border-box; margin: 0; padding: 0; } */
 .admin-root {
   min-height: 100vh;
   background: var(--a-bg);

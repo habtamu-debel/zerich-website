@@ -25,6 +25,7 @@ export default function TrainingManager() {
       qc.invalidateQueries({ queryKey: ['modules'] });
       setShowForm(false);
     },
+    onError: (err) => alert(err.response?.data?.message || 'Could not create module'),
   });
 
   return (

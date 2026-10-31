@@ -1,113 +1,119 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { X, Mail, Phone } from 'lucide-react';
+import { STATUSES, STATUS_STYLES } from './leadStatus';
 
-const STATUSES = ['new', 'contacted', 'qualified', 'won', 'lost'];
-
-export default function LeadDrawer({ lead, onClose, onSave, saving }) {
-  const [status, setStatus] = useState(lead.status || 'new');
+export default function LeadDrawer({ lead, saving, onClose, onSave }) {
+  const [status, setStatus] = useState(lead.status);
   const [notes, setNotes] = useState(lead.admin_notes || '');
 
-  let systems = [];
-  try { systems = JSON.parse(lead.required_systems || '[]'); } catch {}
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const hasPhone = /\d{5,}/.test(lead.phone || '');
+  const received = new Date(String(lead.created_at).replace(' ', 'T')).toLocaleString();
 
   return (
-    <div className="admin-drawer-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="admin-drawer">
-        <div className="admin-drawer-header">
-          <div>
-            <div className="admin-drawer-title">{lead.client_name}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--a-muted)', marginTop: 2 }}>{lead.email}</div>
+    <div className="fixed inset-0 z-50 flex justify-end">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      <aside className="relative w-full max-w-md h-full bg-[#0b1120] border-l border-white/10 flex flex-col shadow-2xl">
+        <header className="flex items-start justify-between gap-4 p-6 border-b border-white/10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-semibold">
+              {lead.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-semibold text-white truncate">{lead.name}</p>
+              <p className="text-sm text-slate-400 truncate">{lead.email}</p>
+            </div>
           </div>
-          <button className="admin-drawer-close" onClick={onClose}>
-            <CloseIcon style={{ width: 20, height: 20 }} />
+          <button onClick={onClose} aria-label="Close" className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10">
+            <X size={20} />
           </button>
-        </div>
+        </header>
 
-        {/* Lead Info Grid */}
-        <div className="admin-info-grid" style={{ marginBottom: 20 }}>
-          <InfoItem label="Company"   value={lead.company     || '—'} />
-          <InfoItem label="Industry"  value={lead.industry    || '—'} />
-          <InfoItem label="Phone"     value={lead.phone       || '—'} />
-          <InfoItem label="Budget"    value={lead.budget_range|| '—'} />
-          <InfoItem label="Source"    value={lead.source      || '—'} />
-          <InfoItem label="Date"      value={lead.created_at ? new Date(lead.created_at).toLocaleDateString() : '—'} />
-        </div>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex gap-2">
+            <a
+              href={`mailto:${lead.email}?subject=${encodeURIComponent('Re: your enquiry to ZeRich Technologies')}`}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-white/5 ring-1 ring-white/10 hover:bg-white/10 py-2 text-sm text-white"
+            >
+              <Mail size={16} /> Email
+            </a>
+            {hasPhone && (
+              <a
+                href={`tel:${lead.phone}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-white/5 ring-1 ring-white/10 hover:bg-white/10 py-2 text-sm text-white"
+              >
+                <Phone size={16} /> Call
+              </a>
+            )}
+          </div>
 
-        {systems.length > 0 && (
-          <div style={{ marginBottom: 20 }}>
-            <label className="admin-label">Required Systems</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {systems.map(s => (
-                <span key={s} className="stage-pill">{s}</span>
+          <dl className="space-y-4 text-sm">
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-slate-500 mb-1">Phone</dt>
+              <dd className="text-slate-200">{lead.phone || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-slate-500 mb-1">Service</dt>
+              <dd className="text-slate-200">{lead.service || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-slate-500 mb-1">Message</dt>
+              <dd className="text-slate-200 whitespace-pre-wrap rounded-lg bg-white/[0.04] p-3">{lead.message || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-slate-500 mb-1">Received</dt>
+              <dd className="text-slate-200">{received}</dd>
+            </div>
+          </dl>
+
+          <div>
+            <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">Status</p>
+            <div className="grid grid-cols-2 gap-2">
+              {STATUSES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatus(s)}
+                  className={`py-2 rounded-lg text-sm capitalize ring-1 transition ${
+                    status === s ? STATUS_STYLES[s] : 'text-slate-400 ring-white/10 hover:bg-white/5'
+                  }`}
+                >
+                  {s}
+                </button>
               ))}
             </div>
           </div>
-        )}
 
-        {lead.message && (
-          <div style={{ marginBottom: 20 }}>
-            <label className="admin-label">Message</label>
-            <div style={{
-              background: 'var(--a-surface2)', border: '1px solid var(--a-border)',
-              borderRadius: 8, padding: '10px 12px', fontSize: '0.85rem',
-              color: 'var(--a-muted2)', lineHeight: 1.6,
-            }}>
-              {lead.message}
-            </div>
+          <div>
+            <label className="block text-xs uppercase tracking-wider text-slate-500 mb-2">Internal notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Call summary, quote sent, next steps…"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-400/60"
+            />
           </div>
-        )}
+        </div>
 
-        <hr className="admin-divider" />
-
-        <div className="admin-form-group">
-          <label className="admin-label">Status</label>
-          <select
-            className="admin-select"
-            value={status}
-            onChange={e => setStatus(e.target.value)}
+        <footer className="p-6 border-t border-white/10 flex gap-3">
+          <button onClick={onClose} className="flex-1 rounded-lg ring-1 ring-white/10 py-2.5 text-sm text-slate-300 hover:bg-white/5">
+            Cancel
+          </button>
+          <button
+            onClick={() => onSave(status, notes)}
+            disabled={saving}
+            className="flex-1 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 py-2.5 text-sm font-medium text-white disabled:opacity-60"
           >
-            {STATUSES.map(s => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="admin-form-group">
-          <label className="admin-label">Admin Notes</label>
-          <textarea
-            className="admin-textarea"
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            rows={4}
-            placeholder="Add notes about this lead…"
-          />
-        </div>
-
-        <button
-          className="admin-btn admin-btn-primary"
-          style={{ width: '100%', justifyContent: 'center', marginTop: 'auto' }}
-          onClick={() => onSave(status, notes)}
-          disabled={saving}
-        >
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
-      </div>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        </footer>
+      </aside>
     </div>
-  );
-}
-
-function InfoItem({ label, value }) {
-  return (
-    <div className="admin-info-item">
-      <label>{label}</label>
-      <span>{value}</span>
-    </div>
-  );
-}
-
-function CloseIcon(props) {
-  return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
   );
 }
